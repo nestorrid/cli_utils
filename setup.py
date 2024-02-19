@@ -11,6 +11,7 @@ setup(
     entry_points={
         'console_scripts': [
             'tree = nescli.tree:tree',
+            'pkg = nescli.pypkg:pkg'
         ],
     },
 )

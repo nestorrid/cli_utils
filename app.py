@@ -1,4 +1,4 @@
-from nescli.tree import tree
+from nescli.pypkg import pkg
 
 if __name__ == "__main__":
-    tree()
+    pkg()

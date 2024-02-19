@@ -39,16 +39,19 @@ config = dict(
 @command()
 @option('-d', '--depth',
         default=8,
-        help='The recursion depth to show. default value is `8`. Set depth to `0` will show all sub directory contents under the target.',
+        help='The recursion depth to show. Set depth to `0` will show all sub directory contents under the target.',
         show_default=True)
 @option('-h/-H', 'show_hidden',
         help='Show hidden files, default is False.')
 @argument('target', default='.')
 def tree(depth, target, show_hidden):
     """
-        Print the file structure for current directory.
+        Print the file structure for the target directory which will be current directory by default.
 
-        TARGET the path to show, default is the current directory. NOTE: this arg can not be file.
+        Arguments:
+
+        TARGET  
+            The path to show, default is the current directory. This arg can not be file.
     """
     abspath = os.path.abspath(target)
 
