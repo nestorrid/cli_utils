@@ -25,6 +25,7 @@ from click import (
 import click
 
 from utils.special_chars import TabChar
+from utils import echo
 
 Line = namedtuple('Line', ['content', 'fg'], defaults=["", 'white'])
 
@@ -59,31 +60,21 @@ def tree(depth, target, show_hidden):
         raise click.BadParameter(
             f'Target must be a directory. But got a file: {abspath!r}')
 
-    print(show_hidden)
-
     config['show_hidden'] = show_hidden
     config['max_depth'] = depth
 
     result = _format_sublines(_print_structure(abspath))
 
     if len(result) == 0:
-        click.echo(
-            click.style(f'Target directory {abspath!r} is empty.', fg='red')
-        )
+        echo(f'Target directory {abspath!r} is empty.', fg='red')
         return
 
-    click.echo(
-        click.style(f">>> Structure for path {abspath!r}", fg='yellow')
-    )
-
-    click.echo(
-        click.style(
-            TabChar.CORNER_TOP_LEFT + abspath.split('/')[-1],
-            fg='blue')
-    )
+    echo(f">>> Structure for path {abspath!r}")
+    echo()
+    echo(TabChar.CORNER_TOP_LEFT + abspath.split('/')[-1], fg='blue')
 
     for line in result:
-        click.echo(click.style(line.content, fg=line.fg))
+        echo(line.content, fg=line.fg)
 
 
 def _print_structure(path, depth=0) -> List[Line]:

@@ -5,7 +5,7 @@ from click.testing import CliRunner
 import click
 import shutil
 
-from nescli.pypkg import pkg, _parse_package, _convert_directory_to_package
+from nescli.commands.pypkg import pkg, _parse_package, _convert_directory_to_package
 
 
 @pytest.fixture

@@ -10,8 +10,9 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'tree = nescli.tree:tree',
-            'pkg = nescli.pypkg:pkg'
+            'tree = nescli.commands.tree:tree',
+            'pkg = nescli.commands.pypkg:pkg',
+            'f = nescli.commands.file:cli'
         ],
     },
 )

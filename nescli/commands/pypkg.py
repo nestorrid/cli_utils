@@ -15,10 +15,13 @@ from datetime import datetime
 
 import click
 
-KEY_ENV_USER = 'user'
-KEY_ENV_MAIL = 'mail'
-KEY_ENV_ADD_HEADER = 'add_header'
-CONFIG_FILE = os.path.join(os.environ.get('HOME'), '.nespkg.conf')
+from utils import echo, msgbox
+from nescli import config
+from nescli.core.headers import python_header
+
+KEY_USER = 'user'
+KEY_MAIL = 'email'
+KEY_ADD_HEADER = 'add_header'
 
 
 def setup_project_basic_packages(ctx, param, value):
@@ -28,15 +31,11 @@ def setup_project_basic_packages(ctx, param, value):
 
     path = os.path.abspath('.')
     folder = path.rsplit('/', 1)[1]
-    messages = []
-    messages += _create_packages(path, folder)
-    messages += _create_packages(path, 'tests')
-    app = os.path.join(path, 'app.py')
-    _create_file(app)
-    messages.append(f'Create file: `app.py`.')
+    _create_packages(path, folder)
+    _create_packages(path, 'tests')
+    _create_file(os.path.join(path, 'app.py'))
 
-    for msg in messages:
-        echo(msg)
+    msgbox.echo(verbose=True)
 
     ctx.exit()
 
@@ -45,28 +44,12 @@ def show_config_info(ctx, param, value):
     if not value:
         return
 
-    conf = _load_config()
+    echo("CONFIG INFO:", show_prefix=True)
+    echo()
+    for key in config.keys():
+        echo(f'{key}: {config.get(key)}')
 
-    if conf:
-        echo("PKG CONFIG INFO:", show_prefix=True)
-        echo()
-        for key, value in conf.items():
-            echo(f'{key} : {value}')
-    else:
-        echo("Can't find config information.")
-        echo("Use `--setuser` or `--setmail` to set user information first.")
     ctx.exit()
-
-
-def echo(msg=None, fg='yellow', show_prefix=False, prefix='>>'):
-
-    if not msg:
-        click.echo(click.style('='*40, fg=fg))
-        return
-
-    if show_prefix:
-        msg = prefix + " " + msg
-    click.echo(click.style(msg, fg=fg))
 
 
 def set_user(ctx, param, value):
@@ -74,7 +57,7 @@ def set_user(ctx, param, value):
     if not value:
         return
 
-    _set_config(KEY_ENV_USER, value)
+    config.set(KEY_USER, value)
     echo(f'USERNAME is set to {value!r}')
     ctx.exit()
 
@@ -84,40 +67,17 @@ def set_mail(ctx, param, value):
     if not value:
         return
 
-    _set_config(KEY_ENV_MAIL, value)
+    config.set(KEY_MAIL, value)
     echo(f'EMAIL is set to {value!r}')
     ctx.exit()
 
 
-def _load_config():
-    if os.path.exists(CONFIG_FILE):
-        conf_obj = json.loads(Path(CONFIG_FILE).read_text())
-        return conf_obj
-
-
-def _set_config(key, value):
-    conf_obj = _load_config() or {}
-    conf_obj[key] = value
-    with open(CONFIG_FILE, 'w') as f:
-        f.write(json.dumps(conf_obj))
-
-
 def set_show_header(ctx, param, value):
 
-    conf = _load_config() or {}
-
-    if not KEY_ENV_ADD_HEADER in conf:
-        echo()
-        echo('This is the first time you run `pkg`. Init file header is `ON`.')
-        echo('If you don\'t want to add anything to the init file just run:\n    `pkg -H`\nto close it.')
-        echo()
-        _set_config(KEY_ENV_ADD_HEADER, value)
+    if config.get(KEY_ADD_HEADER) == value:
         return
 
-    if conf[KEY_ENV_ADD_HEADER] == value:
-        return
-
-    _set_config(KEY_ENV_ADD_HEADER, value)
+    config.set(KEY_ADD_HEADER, value)
     echo(f'Package init file header is {"ON" if value else "OFF"}')
     ctx.exit()
 
@@ -192,106 +152,67 @@ def pkg(names, is_path, verbose):
         names (str): The name of package. Can be multiple names separated by space.
     """
 
-    messages = dict(
-        new=[],
-        turned=[],
-        exists=[],
-    )
-
     for name in names:
         path, pkg, target = _parse_package(name, is_path)
         if os.path.exists(target):
-            if _check_is_package(target):
-                msg = f'Package {pkg!r} is already exists. Nothing will be changed.'
-                messages['exists'].append(msg)
-            else:
+            if not _directory_is_package(target):
                 _convert_directory_to_package(target)
-                msg = f'Folder {pkg!r} is already exists. Turned into package.'
-                messages['turned'].append(msg)
         else:
-            msg = _create_packages(path, pkg)
-            messages['new'].extend(msg)
+            _create_packages(path, pkg)
 
-    _result_message(messages, verbose)
+    if verbose:
+        msgbox.echo(verbose=verbose)
+
+    echo('Done!')
+
+
+def _create_folder(path):
+    try:
+        os.mkdir(path)
+        msgbox.push(f'> Create folder {path!r}.')
+    except FileExistsError as err:
+        msgbox.push(f'> Target folder {path!r} is already exists.')
 
 
 def _create_packages(path, pkg):
 
-    messages = []
-
     if not os.path.exists(path):
         p, t = path.rsplit('/', 1)
-        messages += _create_packages(p, t)
+        _create_packages(p, t)
 
+    msgbox.push(f'- NEW PACKAGE: {pkg}')
     target = os.path.join(path, pkg)
-    os.mkdir(target)
+    _create_folder(target)
     _convert_directory_to_package(target)
-    messages.append(f'New package {pkg!r} is created.')
-
-    return messages
+    msgbox.push(f'> New package {pkg!r} is created.\n')
 
 
-def _result_message(messages, verbose):
-
-    if verbose:
-        for msg_list in messages.values():
-            for msg in msg_list:
-                click.echo(
-                    click.style(msg, fg='green')
-                )
-
-    msg = f'Done! {len(messages["new"])!r} packages created.'
-    if len(messages['turned']) > 0:
-        msg += f" {len(messages['turned'])!r} directories turned into package."
-    if len(messages['exists']) > 0:
-        msg += f" {len(messages['exists'])!r} package is already exists."
-
-    click.echo(
-        click.style(msg, fg='yellow')
-    )
-
-
-def _init_file_header(path):
-
-    conf = _load_config()
-    if not conf[KEY_ENV_ADD_HEADER]:
-        return []
-
-    paths = path.rsplit('/', 2)
-
-    header = [
-        "# -*- coding: utf-8 -*-\n",
-        f"# @File    :   {paths[1]}/{paths[2]}\n",
-        f"# @Time    :   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n",
-    ]
-    if conf[KEY_ENV_USER]:
-        header.append(f"# @Author  :   {conf[KEY_ENV_USER]}\n")
-    if conf[KEY_ENV_MAIL]:
-        header.append(f"# @Email   :   {conf[KEY_ENV_MAIL]}\n")
-
-    header.append('\n""" docstring """')
-
-    return header
-
-
-def _convert_directory_to_package(target):
-
-    name = os.path.join(target, '__init__.py')
-    _create_file(name)
+def _convert_directory_to_package(path):
+    if not _directory_is_package(path):
+        _create_file(os.path.join(path, '__init__.py'))
+        msgbox.push(f'> Directory {path!r} is converted to package.')
 
 
 def _create_file(path):
 
-    headers = _init_file_header(path)
+    if os.path.exists(path):
+        msgbox.push(f'> File {path!r} is already exists.')
+        return
+
+    headers = python_header.generate(path)
 
     with open(path, 'w') as f:
         for line in headers:
             f.write(line)
 
+    msgbox.push(f'> Create file: {path}.')
 
-def _check_is_package(target):
-    path = os.path.join(target, '__init__.py')
-    return os.path.exists(path)
+
+def _directory_is_package(target):
+    if os.path.exists(os.path.join(target, '__init__.py')):
+        msgbox.push(
+            f'> Package {target!r} is already exists.')
+        return True
 
 
 def _parse_package(name, is_path):

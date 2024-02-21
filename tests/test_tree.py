@@ -3,7 +3,7 @@ import os
 import pytest
 from click.testing import CliRunner
 
-from nescli.tree import tree
+from nescli.commands.tree import tree
 
 
 @pytest.fixture
