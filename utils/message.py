@@ -7,7 +7,7 @@
 """ Output message handler """
 
 from functools import reduce
-from typing import List, Tuple, Union, Literal, Iterable
+from typing import List, Tuple, Union, Literal, Iterable, Dict
 from enum import Enum
 
 from .click_util import echo
@@ -33,7 +33,7 @@ class Message:
     """
 
     def __init__(self):
-        self._msg = dict()
+        self._msg: Dict[str, List] = dict()
         self._summary = dict()
 
     def push(
@@ -65,7 +65,7 @@ class Message:
 
         return reduce(
             lambda x, y: x + len(y),
-            self.values(), 0)
+            self._msg.values(), 0)
 
     def list(self, msg_type=MessageType.INFO):
         return self._msg.get(msg_type, [])
@@ -78,11 +78,7 @@ class Message:
     def summary(self, value: Tuple[Union[MessageType, str], str]):
         self._summary[value[0]] = value[1]
 
-    def echo(self, title=None, types=('all',), /, verbose=False):
-
-        if title:
-            echo(title)
-            echo()
+    def echo(self, types=('all',), /, verbose=False):
 
         keys = self._msg.keys() if types == ('all', ) else types
 
@@ -102,6 +98,14 @@ class Message:
             msg_list = self._msg.get(key, [])
             for msg in msg_list:
                 echo(msg)
+
+    def clear(self, types=('all',)):
+        if types == ('all',):
+            self._msg.clear()
+            return
+
+        for t in types:
+            self._msg[t].clear()
 
 
 msgbox = Message()

@@ -14,9 +14,12 @@ def config():
 @pytest.fixture(scope='module', autouse=True)
 def setup_config(config):
     config.set('user', 'root')
-    config.set('mail', 'test@example.com')
+    config.set('email', 'test@example.com')
     yield
-    os.remove('./.test_config')
+    try:
+        os.remove('./.test_config')
+    except FileNotFoundError:
+        pass
 
 
 @pytest.fixture
@@ -26,7 +29,7 @@ def path():
 
 def test_base_file_header_should_raise_exception(path):
     with pytest.raises(NotImplementedError) as err:
-        BaseFileHeader.generate(path)
+        BaseFileHeader().generate(path)
 
     assert err.type == NotImplementedError
 

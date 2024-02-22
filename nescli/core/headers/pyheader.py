@@ -16,7 +16,7 @@ from nescli import config
 class PythonFileHeader(BaseFileHeader):
 
     def generate(self, path: str) -> Iterable[str]:
-        if not config.get('add_header'):
+        if not self.config.get('add_header'):
             return []
 
         paths = path.rsplit('/', 2)

@@ -3,8 +3,9 @@ import pytest
 from utils import msgbox, MessageType as mt
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(autouse=True)
 def init_msg():
+    msgbox.clear()
     msgbox.push('some message')
     msgbox.push('some other message')
     msgbox.push('create message', msg_type=mt.CREATE)
@@ -32,12 +33,17 @@ def test_get_unset_msg_list_should_get_empty_list():
 
 
 def test_echo_message_for_custom_type(capfd):
-    msgbox.echo('test echo')
+    msgbox.echo()
+    out = capfd.readouterr().out
+
+    assert 'INFO' in out
+    assert 'CREATE' in out
+    assert 'custom' in out
 
 
 def test_set_message_summary():
-    msgbox.summary = mt.CREATE, 'Craete something'
-    print(msgbox.summary)
+    msgbox.summary = mt.CREATE, 'Create something'
+    assert msgbox.summary[mt.CREATE] == 'Create something'
 
 
 def test_echo_summary_should_contains_type_and_count(capfd):
@@ -72,11 +78,9 @@ def test_echo_list(capfd):
 
 def test_echo_all(capfd):
     msgbox.summary = 'custom', 'balabala'
-    msgbox.echo('title')
+    msgbox.echo()
     result = capfd.readouterr()
 
-    assert 'title' in result.out
-    assert '===' in result.out
     assert 'balabala: 1' in result.out
 
 

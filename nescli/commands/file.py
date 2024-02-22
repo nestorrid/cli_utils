@@ -101,7 +101,7 @@ def create_py_files(names, verbose, is_test, basepath):
     """
 
     if len(names) == 0:
-        echo("At least one name is required.", show_prefix=True)
+        echo("At least one name is required.")
         return
 
     if is_test:

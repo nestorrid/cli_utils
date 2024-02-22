@@ -200,7 +200,7 @@ def _is_absolute_path(path: str):
     return path.startswith('/')
 
 
-def _parse_package(name, basepath):
+def _parse_package(name, basepath=None):
     if not basepath:
         basepath = os.path.abspath('.')
 

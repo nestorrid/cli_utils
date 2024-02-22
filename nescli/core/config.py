@@ -62,6 +62,7 @@ class CLIConfig:
         del self._conf[key]
         self._write_config()
 
+    @property
     def keys(self):
         return self._conf.keys()
 

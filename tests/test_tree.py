@@ -12,7 +12,7 @@ def runner():
 
 
 def test_default_targt_should_be_current_directory(runner):
-    result = runner.invoke(tree, ['-t', '.'])
+    result = runner.invoke(tree, [os.path.dirname(__file__)])
     assert result.exit_code == 0
     assert 'nescli' in result.output
 

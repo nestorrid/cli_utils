@@ -26,15 +26,15 @@ import click
 
 from utils.special_chars import TabChar
 from utils import echo
+from nescli import config
 
 Line = namedtuple('Line', ['content', 'fg'], defaults=["", 'white'])
 
-config = dict(
-    indent=2,
-    indent_char=TabChar.INDENT,
-    show_hidden=False,
-    max_depth=8
-)
+# config = dict(
+
+#     show_hidden=False,
+#     max_depth=8
+# )
 
 
 @command()
@@ -60,8 +60,10 @@ def tree(depth, target, show_hidden):
         raise click.BadParameter(
             f'Target must be a directory. But got a file: {abspath!r}')
 
-    config['show_hidden'] = show_hidden
-    config['max_depth'] = depth
+    config.set('show_hidden', show_hidden)
+    config.set('max_depth', depth)
+    config.set('indent', 2)
+    config.set('indent_char', TabChar.INDENT)
 
     result = _format_sublines(_print_structure(abspath))
 
@@ -69,17 +71,18 @@ def tree(depth, target, show_hidden):
         echo(f'Target directory {abspath!r} is empty.', fg='red')
         return
 
-    echo(f">>> Structure for path {abspath!r}")
-    echo()
-    echo(TabChar.CORNER_TOP_LEFT + abspath.split('/')[-1], fg='blue')
+    echo.print_title(f"Structure for path {abspath!r}")
+    echo(
+        TabChar.CORNER_TOP_LEFT + abspath.split('/')[-1],
+        fg='blue', show_prefix=False)
 
     for line in result:
-        echo(line.content, fg=line.fg)
+        echo(line.content, fg=line.fg, show_prefix=False)
 
 
 def _print_structure(path, depth=0) -> List[Line]:
 
-    if depth > config['max_depth'] > 0:
+    if depth > config.get('max_depth') > 0:
         return []
 
     if _is_file(path):
@@ -173,7 +176,7 @@ def _is_python_cache(name):
 def _filtered_contents(path):
     contents = os.listdir(path)
 
-    if not config['show_hidden']:
+    if not config.get('show_hidden'):
         contents = list(filter(lambda x: not x.startswith('.') and not (
             x.startswith('__') and x.endswith('__')), contents))
 

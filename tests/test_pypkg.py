@@ -36,9 +36,10 @@ def test_names(runner, names, tmp_path):
 ])
 def test_parse_package_name(name):
     pwd = os.path.abspath('.')
-    path, pkg = _parse_package(name, absolute=False)
-    assert pwd == path
+    folder, pkg, path = _parse_package(name)
+    assert pwd == folder
     assert pkg == name
+    assert path == os.path.join(pwd, name)
 
 
 def test_convert_directory_to_package():
