@@ -1,4 +1,4 @@
-from nescli.pypkg import pkg
+from utils.file_util import create_folder
 
 if __name__ == "__main__":
-    pkg()
+    create_folder('./aaa/bbb/ccc')

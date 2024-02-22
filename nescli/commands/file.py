@@ -94,7 +94,7 @@ def create_py_files(names, verbose, is_test):
     else:
         path = os.path.abspath('.')
         for name in names:
-            fn = os.path.join(path, f'{name}.py')
+            fn = f'{os.path.join(path, name)}.py'
             futil.create_file(fn, header=python_header.generate(fn))
 
     if verbose:

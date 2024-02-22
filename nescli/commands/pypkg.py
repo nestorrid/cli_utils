@@ -15,7 +15,7 @@ from datetime import datetime
 
 import click
 
-from utils import echo, msgbox
+from utils import echo, msgbox, futil
 from nescli import config
 from nescli.core.headers import python_header
 
@@ -85,14 +85,6 @@ def set_show_header(ctx, param, value):
 @click.command()
 @click.argument('names', nargs=-1)
 @click.option(
-    '-p', '--path', 'is_path',
-    is_flag=True,
-    help="""
-        Path flag. 
-        With this flag, you need to give the full path to the package. 
-        Wildcards can be used, like `./somepackage/newpackage`
-        """)
-@click.option(
     '-v', '--verbose', is_flag=True,
     help='Add this flag to show full log messages.')
 @click.option(
@@ -132,28 +124,40 @@ def set_show_header(ctx, param, value):
     |--app.py
     """
 )
-def pkg(names, is_path, verbose):
+@click.option(
+    '-p', '--path', 'basepath',
+    default=None,
+    help="""
+    Set base path for packages. All package will be created under the given base path.
+    
+    By default, base path is relative to the current working directory. For example:
+
+        -p subpath
+            equivalent to -p ./subpath
+    
+    If the base path is start with `/`, it will be treated as absolute path.
+    """
+)
+def pkg(names, verbose, basepath):
     """
     Quickly create python packages.
 
     This command will check for the package existence. If not, it will create a folder with the given name
     and a `__init__.py` file inside.
 
-    You can create nested packages by passing a absolute or relative path.
+    You can create nested packages by passing a path.
     For example:
 
-        `pkg -a ./project/core`
+        `pkg  /path/to/package`
 
-    This command will create package `core` under `project`.
-    If directory `project` is not exists, it will be created automatically, and turn into package.
-
+    This command will use current directory as base path. All path components will be create as python package.
     Args:
 
-        names (str): The name of package. Can be multiple names separated by space.
+        names (str): The name or path to package. Can be multiple names separated by space.
     """
 
     for name in names:
-        path, pkg, target = _parse_package(name, is_path)
+        path, pkg, target = _parse_package(name, basepath=basepath)
         if os.path.exists(target):
             if not _directory_is_package(target):
                 _convert_directory_to_package(target)
@@ -182,30 +186,15 @@ def _create_packages(path, pkg):
 
     msgbox.push(f'- NEW PACKAGE: {pkg}')
     target = os.path.join(path, pkg)
-    _create_folder(target)
+    futil.create_folder(target)
     _convert_directory_to_package(target)
     msgbox.push(f'> New package {pkg!r} is created.\n')
 
 
 def _convert_directory_to_package(path):
     if not _directory_is_package(path):
-        _create_file(os.path.join(path, '__init__.py'))
+        futil.create_python_file(os.path.join(path, '__init__.py'))
         msgbox.push(f'> Directory {path!r} is converted to package.')
-
-
-def _create_file(path):
-
-    if os.path.exists(path):
-        msgbox.push(f'> File {path!r} is already exists.')
-        return
-
-    headers = python_header.generate(path)
-
-    with open(path, 'w') as f:
-        for line in headers:
-            f.write(line)
-
-    msgbox.push(f'> Create file: {path}.')
 
 
 def _directory_is_package(target):
@@ -215,15 +204,21 @@ def _directory_is_package(target):
         return True
 
 
-def _parse_package(name, is_path):
-    if is_path:
-        path, pkg = name.rsplit('/', 1)
-        path = os.path.abspath(path)
-    else:
-        if '/' in name:
-            raise click.BadParameter(
-                """\n>> Package name can not contain `/`, use option `-p` to create packages with full path.""")
-        path = os.path.abspath('.')
-        pkg = name
+def _is_absolute_path(path: str):
+    return path.startswith('/')
 
-    return path, pkg, os.path.join(path, pkg)
+
+def _parse_package(name, basepath):
+    if not basepath:
+        basepath = os.path.abspath('.')
+
+    if not _is_absolute_path(basepath):
+        basepath = '' if basepath.startswith('./') else './' + basepath
+
+    path = os.path.join(basepath, name)
+
+    return (
+        os.path.dirname(path),
+        os.path.basename(path),
+        path
+    )

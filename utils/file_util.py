@@ -12,6 +12,7 @@ import os
 import click
 
 from .message import msgbox
+from nescli.core.headers import python_header
 
 
 def create_folder(path: str):
@@ -31,6 +32,29 @@ def create_folder(path: str):
         msgbox.push(f'> Create folder {path!r}.')
     except FileExistsError as err:
         msgbox.push(f'> Target folder {path!r} is already exists.')
+    except FileNotFoundError:
+        if click.confirm(
+            f'Parent folder for {os.path.basename(path)!r} is not exists.\n'
+            'Do you want to create path to it?'
+        ):
+            os.makedirs(path)
+            msgbox.push(f'> Create path to {path!r}.')
+
+
+def create_python_file(path: str):
+    """
+    Create a python file for the given path.
+
+    Parameters
+    ----------
+    path : str
+        Full path to the python file. With or without extension.
+    """
+
+    if not path.endswith('.py'):
+        path += '.py'
+
+    create_file(path, header=python_header.generate(path))
 
 
 def create_file(path, name=None, /, header: Iterable = None):
@@ -70,7 +94,7 @@ def create_file(path, name=None, /, header: Iterable = None):
 
         if click.confirm(f'{pwd!r} is not exists. \nWould you like to create it?', default=True):
             os.makedirs(pwd)
-            msgbox.push(f'> Create path {pwd!r}.')
+            msgbox.push(f'> Create path to{pwd!r}.')
         else:
             msgbox.push(f'> Cancel creating {path!r}.')
             return
