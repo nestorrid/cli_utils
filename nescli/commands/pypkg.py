@@ -33,7 +33,7 @@ def setup_project_basic_packages(ctx, param, value):
     folder = path.rsplit('/', 1)[1]
     _create_packages(path, folder)
     _create_packages(path, 'tests')
-    _create_file(os.path.join(path, 'app.py'))
+    futil.create_python_file(os.path.join(path, 'app.py'))
 
     msgbox.echo(verbose=True)
 
@@ -168,14 +168,6 @@ def pkg(names, verbose, basepath):
         msgbox.echo(verbose=verbose)
 
     echo('Done!')
-
-
-def _create_folder(path):
-    try:
-        os.mkdir(path)
-        msgbox.push(f'> Create folder {path!r}.')
-    except FileExistsError as err:
-        msgbox.push(f'> Target folder {path!r} is already exists.')
 
 
 def _create_packages(path, pkg):

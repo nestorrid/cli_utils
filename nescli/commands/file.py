@@ -7,6 +7,7 @@
 """ CLI Command to create files. """
 
 import os
+from typing import Iterable
 
 import click
 
@@ -74,7 +75,21 @@ def _create_test_file(names):
     At first, this command will search the `tests` directory in the current path.
     If no `tests` directory is found, it will search the parent paths until `tests` folder is found or no more parent path.
     """)
-def create_py_files(names, verbose, is_test):
+@click.option(
+    '-p', '--path', 'basepath',
+    default=None,
+    help="""
+    Setup a base path for once. All files will be created under the given base path.
+    
+    By default, base path is relative to the current working directory. For example:
+
+        -p subpath
+            equivalent to -p ./subpath
+    
+    If the base path is start with `/`, it will be treated as absolute path.
+    """
+)
+def create_py_files(names, verbose, is_test, basepath):
     """
     Create multiple python files under current directory.
 
@@ -92,12 +107,24 @@ def create_py_files(names, verbose, is_test):
     if is_test:
         _create_test_file(names)
     else:
-        path = os.path.abspath('.')
-        for name in names:
-            fn = f'{os.path.join(path, name)}.py'
-            futil.create_file(fn, header=python_header.generate(fn))
+        _create_files(names, basepath)
 
     if verbose:
         msgbox.echo(verbose=verbose)
 
     echo('Done!')
+
+
+def _is_absolute_path(path):
+    return path.startswith('/')
+
+
+def _create_files(names: Iterable[str], basepath: str):
+    if not basepath:
+        basepath = os.path.abspath('.')
+    else:
+        if not _is_absolute_path(basepath):
+            basepath = '' if basepath.startswith('./') else './' + basepath
+
+    for name in names:
+        futil.create_python_file(os.path.join(basepath, name))
