@@ -3,13 +3,13 @@ try:
 except ImportError:
     import unittest
 
-from utils.click_util import echo
+from utils.echoutils import echo
 
 
 def test_call_echo_should_print_given_message(capfd):
     echo('test')
     out = capfd.readouterr().out
-    assert echo.prefix + 'test' in out
+    assert echo.prefix + ' test' in out
 
 
 def test_echo_done_should_print_Done(capfd):
@@ -23,7 +23,7 @@ def test_get_prefix_right():
 
     assert echo._get_prefix() == '>> '
     assert echo._get_prefix(show_prefix=False) == ''
-    assert echo._get_prefix('ppp') == 'ppp'
+    assert echo._get_prefix('ppp') == 'ppp '
 
     echo.show_prefix = False
     assert echo._get_prefix(show_prefix=True) == '>> '

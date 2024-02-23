@@ -10,7 +10,7 @@ from functools import reduce
 from typing import List, Tuple, Union, Literal, Iterable, Dict
 from enum import Enum
 
-from .click_util import echo
+from .echoutils import echo
 
 
 class MessageType(Enum):

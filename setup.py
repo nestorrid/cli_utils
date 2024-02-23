@@ -9,7 +9,6 @@ setup(
         'Click',
         'qrcode',
         'requests',
-        # 'pyzxing',
         'opencv-python',
     ],
     entry_points={
@@ -17,7 +16,8 @@ setup(
             'tree = nescli.commands.tree:tree',
             'pkg = nescli.commands.pypkg:pkg',
             'f = nescli.commands.file:cli',
-            'qr = nescli.commands.qrconsole:qrconsole'
+            'qr = nescli.commands.qrconsole:qrconsole',
+            'conf = nescli.commands.conf_manage:confcli'
         ],
     },
 )

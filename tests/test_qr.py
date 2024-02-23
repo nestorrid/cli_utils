@@ -102,7 +102,7 @@ def test_parse_qrcode(tmp_path, qrobj):
     print(str(result[0]['parsed'], encoding='utf-8'))
 
 
-# @pytest.mark.skip('Usage testing, irrelevant to the project.')
+@pytest.mark.skip('Usage testing, irrelevant to the project.')
 def test_parse_qrcode_with_cv2(qrobj):
 
     qrobj.add_data('https://baidu.com/')
