@@ -9,13 +9,15 @@
 import os
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Dict, TypeVar
 
 default_config = dict(
     user='undefined',
     email='undefined',
     add_header=True,
 )
+
+T = TypeVar('T')
 
 
 class CLIConfig:
@@ -41,11 +43,11 @@ class CLIConfig:
 
         return default_config
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str, default: T = None) -> str | T:
         """
         read string value from config file. None if the key is not found.
         """
-        return self._conf.get(key, None)
+        return self._conf.get(key, default)
 
     def set(self, key: str, value):
         """

@@ -24,7 +24,7 @@ from click import (
 
 import click
 
-from utils.special_chars import TabChar
+from utils.strutil import TabChar
 from utils import echo
 from nescli import config
 

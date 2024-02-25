@@ -15,6 +15,37 @@ from .message import msgbox
 from nescli.core.headers import python_header
 
 
+def copy(src: str, dest: str, safe: bool = False):
+    """
+    Copy src file to the dest.
+
+    Args:
+
+        :param str src: full path to the source file.
+        :param str dest: full path to the destination file.
+        :param bool safe: check source file and dest path before action, by default False, defaults to False
+
+    Raises:
+
+        :raises FileExistsError: Raise if destination file is exists and safe is True.
+        :raises FileNotFoundError: Raise if source file is not found and safe is True.
+    """
+
+    if safe:
+        if os.path.exists(dest):
+            raise FileExistsError(f'{dest!r} is already exists.')
+
+        if not os.path.exists(src):
+            raise FileNotFoundError(f'{src!r} is not found.')
+
+    if os.path.exists(dest):
+        os.remove(dest)
+
+    with open(src, 'r') as src:
+        with open(dest, 'a') as dst:
+            dst.writelines(src.readlines())
+
+
 def create_folder(path: str):
     """
     Create folder in the given path. Will push a result message to the `msgbox`.
@@ -99,8 +130,9 @@ def create_file(path, name=None, /, header: Iterable = None):
             msgbox.push(f'> Cancel creating {path!r}.')
             return
 
-    with open(path, 'w') as f:
-        for line in header:
-            f.write(line)
+    if header:
+        with open(path, 'w') as f:
+            for line in header:
+                f.write(line)
 
     msgbox.push(f'> Create file: {path}.')

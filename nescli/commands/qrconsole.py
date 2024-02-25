@@ -15,7 +15,7 @@ import requests
 import cv2
 
 from nescli import config
-from utils.special_chars import QRCode as QRCodeCharacter
+from utils.strutil import QRCode as QRCodeCharacter
 from utils import echo
 
 

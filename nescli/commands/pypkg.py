@@ -46,7 +46,7 @@ def show_config_info(ctx, param, value):
 
     echo("CONFIG INFO:", show_prefix=True)
     echo()
-    for key in config.keys():
+    for key in config.keys:
         echo(f'{key}: {config.get(key)}')
 
     ctx.exit()
